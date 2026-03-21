@@ -50,7 +50,6 @@ export default async function Dashboard() {
     if (!inviteCode || inviteCode.trim() === '') return;
 
     try {
-      // In a real app we might use a short code, but here we just use the Household ID as the code
       await prisma.user.update({
         where: { id: session!.user!.id },
         data: { householdId: inviteCode },
@@ -138,6 +137,7 @@ export default async function Dashboard() {
               }}
             >
               <Button
+                type='submit'
                 variant='ghost'
                 className='text-xs text-slate-800 hover:text-white'
               >
@@ -168,7 +168,7 @@ export default async function Dashboard() {
             <h1 className='text-3xl font-bold tracking-tight mb-2'>
               Household Dashboard
             </h1>
-            <p className='text-slate-400'>Welcome back, {firstName}! 👋</p>
+            <p className='text-slate-400'>Welcome back, {firstName}! 🙌</p>
           </div>
         </div>
         <form
@@ -178,6 +178,7 @@ export default async function Dashboard() {
           }}
         >
           <Button
+            type='submit'
             variant='outline'
             className='border-slate-800 text-slate-800 text-xs hover:text-white hover:bg-slate-900'
           >
