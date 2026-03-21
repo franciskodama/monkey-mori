@@ -22,7 +22,7 @@ export default async function Home() {
         </div>
         
         <h1 className="text-4xl justify-center font-bold tracking-tight text-white mb-2">
-          Is Dead
+          Monkey Mori
         </h1>
         <p className="text-slate-400 mb-8 leading-relaxed">
           The ultimate dead man's switch for your household. Ensure your partner has access to critical information, automatically.

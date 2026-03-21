@@ -126,5 +126,6 @@
   }
   html {
     @apply font-sans;
+    font-size: 112.5%; /* Changes 1rem from 16px to 18px globally */
   }
 }
