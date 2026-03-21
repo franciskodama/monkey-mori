@@ -251,6 +251,34 @@ export default async function Dashboard() {
           </div>
         </div>
       </div>
+
+      <div className='max-w-4xl mx-auto mt-8 relative z-10'>
+        <div className='bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6'>
+          <div>
+            <h2 className='text-xl font-semibold mb-2 text-white flex items-center gap-2'>
+              <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' className='text-indigo-400'>
+                <path d='M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z'></path>
+                <path d='M13 13h4'></path>
+                <path d='M13 17h4'></path>
+                <path d='M13 9h4'></path>
+                <path d='M7 13h.01'></path>
+                <path d='M7 17h.01'></path>
+                <path d='M7 9h.01'></path>
+              </svg>
+              Core Information Vault
+            </h2>
+            <p className='text-slate-400 text-sm max-w-lg'>
+              Store your essential directions, emergency contacts, financial details, and pet routines here. It will be securely shared when the switch is triggered.
+            </p>
+          </div>
+          
+          <a href='/dashboard/vault' className='w-full md:w-auto'>
+            <Button className='w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white h-12 shadow-md shadow-indigo-900/20'>
+              Manage Vault
+            </Button>
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
