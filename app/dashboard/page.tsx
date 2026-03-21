@@ -1,11 +1,13 @@
-import { auth, signOut } from '@/auth';
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
+
+import { prisma } from '@/lib/db';
+import { auth, signOut } from '@/auth';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { prisma } from '@/lib/db';
-import { revalidatePath } from 'next/cache';
 
 export default async function Dashboard() {
   const session = await auth();
@@ -14,7 +16,6 @@ export default async function Dashboard() {
     redirect('/');
   }
 
-  // Fetch the full user from our database
   const dbUser = await prisma.user.findUnique({
     where: { id: session.user.id },
     include: { household: true },
@@ -24,7 +25,7 @@ export default async function Dashboard() {
     redirect('/');
   }
 
-  // --- SERVER ACTIONS ---
+  const firstName = dbUser.name?.split(' ')[0];
 
   async function createHousehold(formData: FormData) {
     'use server';
@@ -68,7 +69,7 @@ export default async function Dashboard() {
 
         <div className='max-w-md w-full z-10'>
           <div className='bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl mb-8'>
-            <h1 className='text-2xl font-bold mb-2'>Welcome, {dbUser.name}!</h1>
+            <h1 className='text-2xl font-bold mb-2'>Welcome, {firstName}!</h1>
             <p className='text-slate-400 mb-8 leading-relaxed'>
               Before we begin, you need to set up your Household. This is how
               you and your partner will be securely linked together.
@@ -138,7 +139,7 @@ export default async function Dashboard() {
             >
               <Button
                 variant='ghost'
-                className='text-slate-500 hover:text-white'
+                className='text-xs text-slate-800 hover:text-white'
               >
                 Log Out
               </Button>
@@ -167,7 +168,7 @@ export default async function Dashboard() {
             <h1 className='text-3xl font-bold tracking-tight mb-2'>
               Household Dashboard
             </h1>
-            <p className='text-slate-400'>Welcome back, {session.user.name}</p>
+            <p className='text-slate-400'>Welcome back, {firstName}! 👋</p>
           </div>
         </div>
         <form
@@ -178,7 +179,7 @@ export default async function Dashboard() {
         >
           <Button
             variant='outline'
-            className='border-slate-800 text-slate-300 hover:text-white hover:bg-slate-900'
+            className='border-slate-800 text-slate-800 text-xs hover:text-white hover:bg-slate-900'
           >
             Log Out
           </Button>
