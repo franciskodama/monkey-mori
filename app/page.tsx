@@ -21,13 +21,13 @@ export default async function Home() {
           alt='Monkey Mori Logo'
           width={100}
           height={100}
-          className='object-cover'
+          className='object-cover mt-2'
         />
 
         <h1 className='text-4xl justify-center font-bold tracking-tight text-white mb-2'>
           Monkey Mori
         </h1>
-        <p className='text-slate-400 mb-8 leading-relaxed'>
+        <p className='text-slate-400 mb-12 leading-relaxed'>
           The ultimate dead man's switch for your household. Ensure your partner
           has access to critical information, automatically.
         </p>
@@ -42,7 +42,7 @@ export default async function Home() {
           <Button
             type='submit'
             size='lg'
-            className='w-full bg-white text-slate-950 hover:bg-slate-200 transition-colors py-6 text-lg font-medium shadow-xl shadow-white/10'
+            className='mb-8 w-full bg-white text-slate-950 hover:bg-slate-200 transition-colors py-6 text-lg font-medium shadow-xl shadow-white/10'
           >
             <svg className='w-5 h-5 mr-3' viewBox='0 0 24 24'>
               <path

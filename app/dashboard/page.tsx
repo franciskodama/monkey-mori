@@ -137,6 +137,7 @@ export default async function Dashboard() {
               }}
             >
               <Button
+                type='submit'
                 variant='ghost'
                 className='text-xs text-slate-800 hover:text-white'
               >
@@ -177,6 +178,7 @@ export default async function Dashboard() {
           }}
         >
           <Button
+            type='submit'
             variant='outline'
             className='border-slate-800 text-slate-800 text-xs hover:text-white hover:bg-slate-900'
           >

@@ -229,6 +229,7 @@ export default async function VaultPage(props: {
                   <form action={deleteNote}>
                     <input type='hidden' name='id' value={selectedNote?.id} />
                     <Button
+                      type='submit'
                       variant='outline'
                       size='sm'
                       className='border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300'
