@@ -227,7 +227,7 @@ export default async function VaultPage(props: {
                   {isCreating ? 'Create New Entry' : 'Edit Entry'}
                 </h2>
                 {isEditing && (
-                  <form action={deleteNote}>
+                  <form id="delete-note-form" action={deleteNote}>
                     <input type='hidden' name='id' value={selectedNote?.id} />
                     <DeleteButton />
                   </form>
