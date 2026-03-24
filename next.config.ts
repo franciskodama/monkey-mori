@@ -7,9 +7,8 @@ const nextConfig: NextConfig = {
   experimental: {
     // ... other experimental options if any
   },
-  // @ts-ignore
   turbopack: {
-    root: '.',
+    root: __dirname,
   },
 };
 
