@@ -44,6 +44,38 @@ export async function GET(request: Request) {
           data: { switchStatus: 'TRIGGERED' },
         });
         triggeredUsers.push(user.email || user.id);
+
+        // Notify the partner immediately that the vault is unlocked!
+        if (user.householdId) {
+          const partner = await prisma.user.findFirst({
+            where: {
+              householdId: user.householdId,
+              id: { not: user.id },
+            },
+          });
+
+          if (partner?.email) {
+            await resend.emails.send({
+              from: 'Monkey Mori <onboarding@resend.dev>',
+              to: [partner.email],
+              subject: `🚨 CRITICAL ALERT: ${user.name?.split(' ')[0] || 'Your partner'}'s Vault Unlocked`,
+              html: `
+                <div style="font-family: system-ui, -apple-system, sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; line-height: 1.6;">
+                  <h1 style="color: #ef4444; border-bottom: 2px solid #fee2e2; padding-bottom: 10px;">Monkey Mori Emergency Alert</h1>
+                  <p><strong>URGENT:</strong> Your partner, <strong>${user.name || 'your household member'}</strong>, has failed to complete their Monkey Mori check-in for over 44 days.</p>
+                  <p>Their dead man's switch has officially triggered.</p>
+                  <div style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 16px; border-radius: 8px; margin: 24px 0;">
+                    <p style="margin: 0; color: #b91c1c; font-weight: bold;">
+                      All of their inherently PRIVATE notes and instructions have now been automatically unlocked and are fully readable to you.
+                    </p>
+                  </div>
+                  <p>Please log in immediately to review their emergency instructions, banking details, or final notes.</p>
+                  <a href="${baseUrl}/dashboard/partner-vault" style="display:inline-block; margin-top: 16px; padding: 14px 28px; background-color: #ef4444; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Access Partner Vault Now</a>
+                </div>
+              `
+            });
+          }
+        }
       } 
       // WARNING 3: FINAL 48-HOUR URGENT WARNING (Day 42 - Day 43)
       else if (deltaDays >= 42 && deltaDays < 43 && user.switchStatus === 'ACTIVE') {
