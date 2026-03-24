@@ -24,12 +24,14 @@ export default async function Home() {
           className='object-cover mt-2'
         />
 
-        <h1 className='text-4xl justify-center font-bold tracking-tight text-white mb-2'>
+        <h1 className='text-4xl justify-center font-bold tracking-tight text-white mb-3 mt-4'>
           Monkey Mori
         </h1>
-        <p className='text-slate-400 mb-12 leading-relaxed'>
-          The ultimate dead man's switch for your household. Ensure your partner
-          has access to critical information, automatically.
+        <p className='text-slate-300 mb-4 text-lg font-medium'>
+          The autonomous dead man's switch for your household.
+        </p>
+        <p className='text-slate-500 mb-10 text-sm leading-relaxed max-w-sm'>
+          Securely lock away your final instructions, banking recovery details, and private notes. If you ever stop responding to your automated safety check-ins, your vault seamlessly unlocks for your partner when they need it most.
         </p>
 
         <form

@@ -8,6 +8,7 @@ import { auth, signOut } from '@/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Clock, Server, Heart, HouseHeart, Fingerprint } from 'lucide-react';
 
 export default async function Dashboard() {
   const session = await auth();
@@ -23,6 +24,16 @@ export default async function Dashboard() {
 
   if (!dbUser) {
     redirect('/');
+  }
+
+  let partner = null;
+  if (dbUser.householdId) {
+    partner = await prisma.user.findFirst({
+      where: {
+        householdId: dbUser.householdId,
+        id: { not: dbUser.id },
+      },
+    });
   }
 
   const firstName = dbUser.name?.split(' ')[0];
@@ -190,21 +201,7 @@ export default async function Dashboard() {
       <div className='max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10'>
         <div className='bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl'>
           <h2 className='text-xl font-semibold mb-2 text-white flex items-center gap-2'>
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              width='20'
-              height='20'
-              viewBox='0 0 24 24'
-              fill='none'
-              stroke='currentColor'
-              strokeWidth='2'
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              className='text-emerald-500'
-            >
-              <path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'></path>
-              <polyline points='9 22 9 12 15 12 15 22'></polyline>
-            </svg>
+            <HouseHeart className='text-emerald-500 w-5 h-5' />
             {dbUser.household?.name}
           </h2>
           <p className='text-slate-400 mb-6 text-sm'>
@@ -231,75 +228,76 @@ export default async function Dashboard() {
 
         <div className='bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl'>
           <h2 className='text-xl font-semibold mb-2 text-white flex items-center gap-2'>
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              width='20'
-              height='20'
-              viewBox='0 0 24 24'
-              fill='none'
-              stroke='currentColor'
-              strokeWidth='2'
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              className='text-indigo-400'
-            >
-              <circle cx='12' cy='12' r='10'></circle>
-              <polyline points='12 6 12 12 16 14'></polyline>
-            </svg>
+            <Clock className='text-indigo-400 w-5 h-5' />
             Switch Status
           </h2>
           <p className='text-slate-400 mb-6 text-sm'>
             Your dead man's switch is active.
           </p>
 
-          <div className='flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl'>
+          <div className='flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl mb-4'>
             <div>
-              <p className='font-md text-emerald-400'>All Good</p>
+              <p className='font-md text-emerald-400'>Your Status: All Good</p>
               <p className='text-sm text-slate-400 mt-1'>
                 Next check-in: in 30 days
               </p>
             </div>
             <div className='w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_0_var(--color-emerald-500)]' />
           </div>
+
+          {partner && (
+            <div className='flex items-center justify-between p-4 bg-slate-900/50 border border-slate-800 rounded-xl'>
+              <div>
+                <p className='font-md text-slate-300'>{partner.name?.split(' ')[0] || 'Partner'}'s Status</p>
+                <p className='text-sm text-slate-500 mt-1'>
+                   {partner.switchStatus === 'TRIGGERED' ? 'Vault Unlocked' : `Last check-in: ${partner.lastCheckInAt ? partner.lastCheckInAt.toLocaleDateString() : 'Never'}`}
+                </p>
+              </div>
+              <div className={`w-3 h-3 rounded-full ${partner.switchStatus === 'TRIGGERED' ? 'bg-red-500 shadow-[0_0_10px_0_var(--color-red-500)] animate-pulse' : 'bg-slate-600'}`} />
+            </div>
+          )}
         </div>
       </div>
 
-      <div className='max-w-4xl mx-auto mt-8 relative z-10'>
-        <div className='bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6'>
+      <div className='max-w-4xl mx-auto mt-8 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8'>
+        <div className='bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl flex flex-col justify-between gap-6'>
           <div>
             <h2 className='text-xl font-semibold mb-2 text-white flex items-center gap-2'>
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                width='20'
-                height='20'
-                viewBox='0 0 24 24'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='2'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                className='text-indigo-400'
-              >
-                <path d='M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z'></path>
-                <path d='M13 13h4'></path>
-                <path d='M13 17h4'></path>
-                <path d='M13 9h4'></path>
-                <path d='M7 13h.01'></path>
-                <path d='M7 17h.01'></path>
-                <path d='M7 9h.01'></path>
-              </svg>
-              Core Information Vault
+              <Fingerprint className='text-indigo-400 w-5 h-5' />
+              Your Secret Vault
             </h2>
-            <p className='text-slate-400 text-sm max-w-lg'>
+            <p className='text-slate-400 text-sm'>
               Store your essential directions, emergency contacts, financial
-              details, and pet routines here. It will be securely shared when
-              the switch is triggered.
+              details, and instructions here.
             </p>
           </div>
 
-          <a href='/dashboard/vault' className='w-full md:w-auto'>
-            <Button className='w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white h-12 shadow-md shadow-indigo-900/20'>
-              Manage Vault
+          <a href='/dashboard/vault' className='w-full'>
+            <Button className='w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 shadow-md shadow-indigo-900/20'>
+              Manage Your Vault
+            </Button>
+          </a>
+        </div>
+
+        <div className='bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl flex flex-col justify-between gap-6 relative overflow-hidden'>
+          <div className='absolute top-0 right-0 w-[150px] h-[150px] bg-emerald-500/10 rounded-full blur-[60px] pointer-events-none' />
+          <div className='relative z-10'>
+            <h2 className='text-xl font-semibold mb-2 text-white flex items-center gap-2'>
+              <Heart className='text-emerald-400 w-5 h-5' />
+              Partner Vault
+            </h2>
+            <p className='text-slate-400 text-sm'>
+              View the notes your partner has shared with you, and automatically
+              access their private directions if their switch is triggered.
+            </p>
+          </div>
+
+          <a href='/dashboard/partner-vault' className='w-full relative z-10'>
+            <Button
+              variant='outline'
+              className='w-full border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 h-12 bg-slate-950'
+            >
+              Access Partner Vault
             </Button>
           </a>
         </div>
