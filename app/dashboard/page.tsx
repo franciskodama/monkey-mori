@@ -71,6 +71,15 @@ export default async function Dashboard() {
     }
   }
 
+  async function leaveHousehold() {
+    'use server';
+    await prisma.user.update({
+      where: { id: session!.user!.id },
+      data: { householdId: null },
+    });
+    revalidatePath('/dashboard');
+  }
+
   // --- ONBOARDING VIEW ---
   if (!dbUser.householdId) {
     return (
@@ -224,6 +233,21 @@ export default async function Dashboard() {
               when they log in.
             </p>
           </div>
+
+          <div className='mt-8 pt-6 border-t border-slate-800/50'>
+            <p className='text-xs text-slate-500 mb-3'>
+              Need to connect with a different partner or code?
+            </p>
+            <form action={leaveHousehold}>
+              <Button
+                type='submit'
+                variant='outline'
+                className='w-full border-red-900/30 bg-red-500/80 text-white hover:bg-red-950/20 hover:text-red-400 hover:border-red-900/50 h-10 text-xs transition-colors'
+              >
+                Disconnect from Household
+              </Button>
+            </form>
+          </div>
         </div>
 
         <div className='bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl'>
@@ -248,12 +272,18 @@ export default async function Dashboard() {
           {partner && (
             <div className='flex items-center justify-between p-4 bg-slate-900/50 border border-slate-800 rounded-xl'>
               <div>
-                <p className='font-md text-slate-300'>{partner.name?.split(' ')[0] || 'Partner'}'s Status</p>
+                <p className='font-md text-slate-300'>
+                  {partner.name?.split(' ')[0] || 'Partner'}'s Status
+                </p>
                 <p className='text-sm text-slate-500 mt-1'>
-                   {partner.switchStatus === 'TRIGGERED' ? 'Vault Unlocked' : `Last check-in: ${partner.lastCheckInAt ? partner.lastCheckInAt.toLocaleDateString() : 'Never'}`}
+                  {partner.switchStatus === 'TRIGGERED'
+                    ? 'Vault Unlocked'
+                    : `Last check-in: ${partner.lastCheckInAt ? partner.lastCheckInAt.toLocaleDateString() : 'Never'}`}
                 </p>
               </div>
-              <div className={`w-3 h-3 rounded-full ${partner.switchStatus === 'TRIGGERED' ? 'bg-red-500 shadow-[0_0_10px_0_var(--color-red-500)] animate-pulse' : 'bg-slate-600'}`} />
+              <div
+                className={`w-3 h-3 rounded-full ${partner.switchStatus === 'TRIGGERED' ? 'bg-red-500 shadow-[0_0_10px_0_var(--color-red-500)] animate-pulse' : 'bg-slate-600'}`}
+              />
             </div>
           )}
         </div>
