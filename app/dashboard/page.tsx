@@ -104,7 +104,7 @@ export default async function Dashboard() {
                   id='name'
                   name='name'
                   required
-                  placeholder='e.g. The Kodamas'
+                  placeholder='e.g. The Kennedys'
                   className='bg-slate-950 border-slate-800 focus-visible:ring-emerald-500 h-12'
                 />
               </div>
