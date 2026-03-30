@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Clock, Server, Heart, HouseHeart, Fingerprint } from 'lucide-react';
+import { ManageHouseholdClient } from './manage-household';
 
 export default async function Dashboard() {
   const session = await auth();
@@ -210,48 +211,6 @@ export default async function Dashboard() {
       <div className='max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10'>
         <div className='bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl'>
           <h2 className='text-xl font-semibold mb-2 text-white flex items-center gap-2'>
-            <HouseHeart className='text-emerald-500 w-5 h-5' />
-            {dbUser.household?.name}
-          </h2>
-          <p className='text-slate-400 mb-6 text-sm'>
-            You are linked to this household.
-          </p>
-
-          <div className='bg-slate-950 p-4 rounded-xl border border-slate-800'>
-            <Label className='text-md text-slate-500 uppercase tracking-wider mb-2 block'>
-              Partner Invite Code
-            </Label>
-            <div className='flex gap-2'>
-              <Input
-                readOnly
-                value={dbUser.household?.id || ''}
-                className='bg-transparent border-slate-800 text-emerald-400 font-mono text-xs focus-visible:ring-0'
-              />
-            </div>
-            <p className='text-sm text-slate-500 mt-2'>
-              Send this code to your partner so they can join this household
-              when they log in.
-            </p>
-          </div>
-
-          <div className='mt-8 pt-6 border-t border-slate-800/50'>
-            <p className='text-xs text-slate-500 mb-3'>
-              Need to connect with a different partner or code?
-            </p>
-            <form action={leaveHousehold}>
-              <Button
-                type='submit'
-                variant='outline'
-                className='w-full border-red-900/30 bg-red-500/80 text-white hover:bg-red-950/20 hover:text-red-400 hover:border-red-900/50 h-10 text-xs transition-colors'
-              >
-                Disconnect from Household
-              </Button>
-            </form>
-          </div>
-        </div>
-
-        <div className='bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl'>
-          <h2 className='text-xl font-semibold mb-2 text-white flex items-center gap-2'>
             <Clock className='text-indigo-400 w-5 h-5' />
             Switch Status
           </h2>
@@ -286,6 +245,21 @@ export default async function Dashboard() {
               />
             </div>
           )}
+        </div>
+
+        <div className='bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl'>
+          <h2 className='text-xl font-semibold mb-2 text-white flex items-center gap-2'>
+            <HouseHeart className='text-emerald-500 w-5 h-5' />
+            {dbUser.household?.name}
+          </h2>
+          <p className='text-slate-400 mb-6 text-sm'>
+            You are linked to this household.
+          </p>
+
+          <ManageHouseholdClient
+            householdId={dbUser.household?.id || ''}
+            onLeave={leaveHousehold}
+          />
         </div>
       </div>
 
