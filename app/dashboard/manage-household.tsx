@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
+import { ChevronDown, ChevronUp, AlertTriangle, Copy, Check } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +25,17 @@ export function ManageHouseholdClient({
   onLeave: () => Promise<void>;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(householdId);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
 
   return (
     <div className='mt-6 border-t border-slate-800/50 pt-4'>
@@ -42,12 +53,25 @@ export function ManageHouseholdClient({
             <Label className='text-md text-slate-500 uppercase tracking-wider mb-2 block'>
               Partner Invite Code
             </Label>
-            <div className='flex gap-2'>
+            <div className='flex gap-2 items-center'>
               <Input
                 readOnly
                 value={householdId}
-                className='bg-transparent border-slate-800 text-emerald-400 font-mono text-xs focus-visible:ring-0'
+                className='flex-1 bg-transparent border-slate-800 text-emerald-400 font-mono text-xs focus-visible:ring-emerald-500/50 truncate'
               />
+              <Button
+                type='button'
+                variant='outline'
+                size='icon'
+                onClick={handleCopy}
+                className={`border-slate-800 shrink-0 transition-colors ${
+                  isCopied
+                    ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/50 hover:bg-emerald-500/20'
+                    : 'text-slate-400 hover:text-white bg-slate-900/50 hover:bg-slate-800'
+                }`}
+              >
+                {isCopied ? <Check className='w-4 h-4' /> : <Copy className='w-4 h-4' />}
+              </Button>
             </div>
             <p className='text-sm text-slate-500 mt-2'>
               Send this code to your partner so they can join this household when they log in.

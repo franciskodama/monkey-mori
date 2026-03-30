@@ -247,10 +247,10 @@ export default async function Dashboard() {
           )}
         </div>
 
-        <div className='bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl'>
+        <div className='bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl min-w-0'>
           <h2 className='text-xl font-semibold mb-2 text-white flex items-center gap-2'>
-            <HouseHeart className='text-emerald-500 w-5 h-5' />
-            {dbUser.household?.name}
+            <HouseHeart className='text-emerald-500 w-5 h-5 shrink-0' />
+            <span className='truncate'>{dbUser.household?.name}</span>
           </h2>
           <p className='text-slate-400 mb-6 text-sm'>
             You are linked to this household.
