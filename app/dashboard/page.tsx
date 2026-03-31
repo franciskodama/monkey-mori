@@ -20,13 +20,19 @@ function getStatusConfig(status: string | undefined, lastCheckInAt: Date | null)
       shadow: 'shadow-[0_0_10px_0_var(--color-red-500)]',
       text: 'text-red-400',
       label: 'Vault Unlocked',
-      pulse: 'animate-pulse'
+      pulse: 'animate-pulse',
+      nextCheckInStr: 'Vault open (No check-ins needed)'
     };
   }
 
   const daysSince = lastCheckInAt 
     ? Math.floor((Date.now() - lastCheckInAt.getTime()) / (1000 * 60 * 60 * 24))
     : 0;
+
+  const daysRemaining = lastCheckInAt ? Math.max(0, 30 - daysSince) : 30;
+  const nextCheckInStr = daysRemaining > 0 
+    ? `Next check-in: in ${daysRemaining} days` 
+    : 'Check-in overdue!';
 
   if (status === 'REMINDER_1' || status === 'REMINDER_2' || daysSince > 30) {
     return {
@@ -36,7 +42,8 @@ function getStatusConfig(status: string | undefined, lastCheckInAt: Date | null)
       shadow: 'shadow-[0_0_10px_0_var(--color-amber-500)]',
       text: 'text-amber-400',
       label: 'Action Required',
-      pulse: 'animate-pulse'
+      pulse: 'animate-pulse',
+      nextCheckInStr
     };
   }
 
@@ -47,7 +54,8 @@ function getStatusConfig(status: string | undefined, lastCheckInAt: Date | null)
     shadow: 'shadow-[0_0_10px_0_var(--color-emerald-500)]',
     text: 'text-emerald-400',
     label: 'All Good',
-    pulse: 'animate-pulse'
+    pulse: 'animate-pulse',
+    nextCheckInStr
   };
 }
 
@@ -285,9 +293,14 @@ export default async function Dashboard() {
           <div className={`flex items-center justify-between p-4 ${myStatus.bg} border ${myStatus.border} rounded-xl mb-4 transition-colors`}>
             <div>
               <p className={`font-md ${myStatus.text}`}>Your Status: {myStatus.label}</p>
-              <p className='text-sm text-slate-400 mt-1'>
-                Last check-in: {dbUser.lastCheckInAt ? dbUser.lastCheckInAt.toLocaleDateString() : 'Never'}
-              </p>
+              <div className='mt-1 space-y-0.5'>
+                <p className='text-sm text-slate-400'>
+                  Last check-in: {dbUser.lastCheckInAt ? dbUser.lastCheckInAt.toLocaleDateString() : 'Never'}
+                </p>
+                <p className='text-xs text-slate-500'>
+                  {myStatus.nextCheckInStr}
+                </p>
+              </div>
             </div>
             <div className={`w-3 h-3 rounded-full ${myStatus.dot} ${myStatus.pulse} ${myStatus.shadow}`} />
           </div>
@@ -298,9 +311,14 @@ export default async function Dashboard() {
                 <p className={`font-md ${partnerStatus.text}`}>
                   {partner.name?.split(' ')[0] || 'Partner'}'s Status: {partnerStatus.label}
                 </p>
-                <p className='text-sm text-slate-400 mt-1'>
-                  Last check-in: {partner.lastCheckInAt ? partner.lastCheckInAt.toLocaleDateString() : 'Never'}
-                </p>
+                <div className='mt-1 space-y-0.5'>
+                  <p className='text-sm text-slate-400'>
+                    Last check-in: {partner.lastCheckInAt ? partner.lastCheckInAt.toLocaleDateString() : 'Never'}
+                  </p>
+                  <p className='text-xs text-slate-500'>
+                    {partnerStatus.nextCheckInStr}
+                  </p>
+                </div>
               </div>
               <div
                 className={`w-3 h-3 rounded-full ${partnerStatus.dot} ${partnerStatus.pulse} ${partnerStatus.shadow}`}
