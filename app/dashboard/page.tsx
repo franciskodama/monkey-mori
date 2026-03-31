@@ -11,6 +11,46 @@ import { Label } from '@/components/ui/label';
 import { Clock, Server, Heart, HouseHeart, Fingerprint } from 'lucide-react';
 import { ManageHouseholdClient } from './manage-household';
 
+function getStatusConfig(status: string | undefined, lastCheckInAt: Date | null) {
+  if (status === 'TRIGGERED') {
+    return {
+      bg: 'bg-red-500/10',
+      border: 'border-red-500/20',
+      dot: 'bg-red-500',
+      shadow: 'shadow-[0_0_10px_0_var(--color-red-500)]',
+      text: 'text-red-400',
+      label: 'Vault Unlocked',
+      pulse: 'animate-pulse'
+    };
+  }
+
+  const daysSince = lastCheckInAt 
+    ? Math.floor((Date.now() - lastCheckInAt.getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+
+  if (status === 'REMINDER_1' || status === 'REMINDER_2' || daysSince > 30) {
+    return {
+      bg: 'bg-amber-500/10',
+      border: 'border-amber-500/20',
+      dot: 'bg-amber-500',
+      shadow: 'shadow-[0_0_10px_0_var(--color-amber-500)]',
+      text: 'text-amber-400',
+      label: 'Action Required',
+      pulse: 'animate-pulse'
+    };
+  }
+
+  return {
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/20',
+    dot: 'bg-emerald-500',
+    shadow: 'shadow-[0_0_10px_0_var(--color-emerald-500)]',
+    text: 'text-emerald-400',
+    label: 'All Good',
+    pulse: 'animate-pulse'
+  };
+}
+
 export default async function Dashboard() {
   const session = await auth();
 
@@ -171,6 +211,9 @@ export default async function Dashboard() {
     );
   }
 
+  const myStatus = getStatusConfig(dbUser.switchStatus, dbUser.lastCheckInAt);
+  const partnerStatus = partner ? getStatusConfig(partner.switchStatus, partner.lastCheckInAt) : null;
+
   // --- STANDARD DASHBOARD VIEW ---
   return (
     <div className='min-h-screen bg-slate-950 text-white p-8 relative overflow-hidden'>
@@ -218,30 +261,28 @@ export default async function Dashboard() {
             Your dead man's switch is active.
           </p>
 
-          <div className='flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl mb-4'>
+          <div className={`flex items-center justify-between p-4 ${myStatus.bg} border ${myStatus.border} rounded-xl mb-4 transition-colors`}>
             <div>
-              <p className='font-md text-emerald-400'>Your Status: All Good</p>
+              <p className={`font-md ${myStatus.text}`}>Your Status: {myStatus.label}</p>
               <p className='text-sm text-slate-400 mt-1'>
-                Next check-in: in 30 days
+                Last check-in: {dbUser.lastCheckInAt ? dbUser.lastCheckInAt.toLocaleDateString() : 'Never'}
               </p>
             </div>
-            <div className='w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_0_var(--color-emerald-500)]' />
+            <div className={`w-3 h-3 rounded-full ${myStatus.dot} ${myStatus.pulse} ${myStatus.shadow}`} />
           </div>
 
-          {partner && (
-            <div className='flex items-center justify-between p-4 bg-slate-900/50 border border-slate-800 rounded-xl'>
+          {partner && partnerStatus && (
+            <div className={`flex items-center justify-between p-4 ${partnerStatus.bg} border ${partnerStatus.border} rounded-xl transition-colors`}>
               <div>
-                <p className='font-md text-slate-300'>
-                  {partner.name?.split(' ')[0] || 'Partner'}'s Status
+                <p className={`font-md ${partnerStatus.text}`}>
+                  {partner.name?.split(' ')[0] || 'Partner'}'s Status: {partnerStatus.label}
                 </p>
-                <p className='text-sm text-slate-500 mt-1'>
-                  {partner.switchStatus === 'TRIGGERED'
-                    ? 'Vault Unlocked'
-                    : `Last check-in: ${partner.lastCheckInAt ? partner.lastCheckInAt.toLocaleDateString() : 'Never'}`}
+                <p className='text-sm text-slate-400 mt-1'>
+                  Last check-in: {partner.lastCheckInAt ? partner.lastCheckInAt.toLocaleDateString() : 'Never'}
                 </p>
               </div>
               <div
-                className={`w-3 h-3 rounded-full ${partner.switchStatus === 'TRIGGERED' ? 'bg-red-500 shadow-[0_0_10px_0_var(--color-red-500)] animate-pulse' : 'bg-slate-600'}`}
+                className={`w-3 h-3 rounded-full ${partnerStatus.dot} ${partnerStatus.pulse} ${partnerStatus.shadow}`}
               />
             </div>
           )}
