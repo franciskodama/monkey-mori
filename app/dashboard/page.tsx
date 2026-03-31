@@ -67,6 +67,27 @@ export default async function Dashboard() {
     redirect('/');
   }
 
+  // --- AUTO CHECK-IN ---
+  // If the user hasn't checked in for over 24 hours, or isn't ACTIVE, count this dashboard visit as a check-in!
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  if (
+    !dbUser.lastCheckInAt ||
+    dbUser.lastCheckInAt < oneDayAgo ||
+    dbUser.switchStatus !== 'ACTIVE'
+  ) {
+    await prisma.user.update({
+      where: { id: dbUser.id },
+      data: {
+        lastCheckInAt: new Date(),
+        switchStatus: 'ACTIVE', // Reset any warnings/triggers because they are clearly alive
+      },
+    });
+
+    // Optimistically update the UI to show the reset immediately
+    dbUser.lastCheckInAt = new Date();
+    dbUser.switchStatus = 'ACTIVE';
+  }
+
   let partner = null;
   if (dbUser.householdId) {
     partner = await prisma.user.findFirst({
