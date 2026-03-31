@@ -31,8 +31,10 @@ export default async function VaultPage(props: {
     noteId && noteId !== 'new' ? notes.find((n) => n.id === noteId) : null;
 
   // Compute stats or general dashboard info
+  const isEditMode = searchParams?.edit === 'true';
   const isCreating = noteId === 'new';
-  const isEditing = !!selectedNote;
+  const isEditing = !!selectedNote && isEditMode;
+  const isViewing = !!selectedNote && !isEditMode;
 
   // -- SERVER ACTIONS --
   async function saveNote(formData: FormData) {
@@ -48,10 +50,20 @@ export default async function VaultPage(props: {
     if (!title || !content) return;
 
     if (id && id !== 'new') {
-      // Update safely enforcing userId
-      await prisma.note.updateMany({
-        where: { id, userId: authSession.user.id },
-        data: { title, content, visibility },
+      // Safely check ownership before upserting
+      const existing = await prisma.note.findUnique({ where: { id } });
+      if (existing && existing.userId !== authSession.user.id) return;
+
+      await prisma.note.upsert({
+        where: { id },
+        update: { title, content, visibility },
+        create: {
+          id,
+          title,
+          content,
+          visibility: visibility || 'SHARED',
+          userId: authSession.user.id,
+        },
       });
     } else {
       // Create
@@ -191,7 +203,43 @@ export default async function VaultPage(props: {
 
         {/* Right pane: Form Editor */}
         <div className='flex-1 bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl h-[calc(100vh-4rem)] flex flex-col'>
-          {!isCreating && !isEditing ? (
+          {isViewing && selectedNote ? (
+            <div className='flex-1 flex flex-col overflow-y-auto'>
+              <div className='p-8 border-b border-slate-800 flex items-center justify-between'>
+                <h2 className='text-2xl font-bold text-white'>
+                  {selectedNote.title}
+                </h2>
+                <Link href={`/dashboard/vault?id=${selectedNote.id}&edit=true`}>
+                  <Button
+                    variant='outline'
+                    className='border-emerald-500/30 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 bg-slate-950/50'
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 Z"></path></svg>
+                    Edit Entry
+                  </Button>
+                </Link>
+              </div>
+              <div className='p-8 flex-1 flex flex-col gap-6'>
+                <div className='flex items-center gap-2'>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full border ${
+                      selectedNote.visibility === 'SHARED'
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                        : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                    }`}
+                  >
+                    {selectedNote.visibility}
+                  </span>
+                  <span className='text-xs text-slate-500'>
+                    Last updated: {selectedNote.updatedAt.toLocaleDateString()}
+                  </span>
+                </div>
+                <div className='prose prose-invert max-w-none mt-4'>
+                  <p className='whitespace-pre-wrap text-slate-300 leading-relaxed'>{selectedNote.content}</p>
+                </div>
+              </div>
+            </div>
+          ) : !isCreating && !isEditing ? (
             <div className='flex-1 flex flex-col items-center justify-center p-8 text-center'>
               <div className='w-20 h-20 bg-slate-950 rounded-2xl flex items-center justify-center mb-6 shadow-inner border border-slate-800'>
                 <svg
@@ -228,7 +276,7 @@ export default async function VaultPage(props: {
                 </h2>
                 {isEditing && (
                   <form id="delete-note-form" action={deleteNote}>
-                    <input type='hidden' name='id' value={selectedNote?.id} />
+                    <input type='hidden' name='id' defaultValue={selectedNote?.id} />
                     <DeleteButton />
                   </form>
                 )}
@@ -241,7 +289,7 @@ export default async function VaultPage(props: {
                 <input
                   type='hidden'
                   name='id'
-                  value={selectedNote?.id || 'new'}
+                  defaultValue={selectedNote?.id || 'new'}
                 />
 
                 <div className='space-y-2'>
@@ -292,7 +340,7 @@ export default async function VaultPage(props: {
                 </div>
 
                 <div className='pt-4 flex justify-end gap-4'>
-                  <Link href='/dashboard/vault'>
+                  <Link href={isCreating ? '/dashboard/vault' : `/dashboard/vault?id=${selectedNote?.id}`}>
                     <Button
                       type='button'
                       variant='ghost'
