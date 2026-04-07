@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
+import { encrypt, decrypt } from '@/lib/encryption';
 import { revalidatePath } from 'next/cache';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -21,9 +22,19 @@ export default async function VaultPage(props: {
     redirect('/');
   }
 
-  const notes = await prisma.note.findMany({
+  const rawNotes = await prisma.note.findMany({
     where: { userId: session.user.id },
     orderBy: { updatedAt: 'desc' },
+  });
+
+  // Decrypt notes for display
+  const notes = rawNotes.map((note) => {
+    try {
+      return { ...note, content: decrypt(note.content) };
+    } catch (e) {
+      // Fallback for existing plain text notes or decryption errors
+      return note;
+    }
   });
 
   // Fetch the selected note if editing
@@ -49,6 +60,8 @@ export default async function VaultPage(props: {
 
     if (!title || !content) return;
 
+    const encryptedContent = encrypt(content);
+
     if (id && id !== 'new') {
       // Safely check ownership before upserting
       const existing = await prisma.note.findUnique({ where: { id } });
@@ -56,11 +69,11 @@ export default async function VaultPage(props: {
 
       await prisma.note.upsert({
         where: { id },
-        update: { title, content, visibility },
+        update: { title, content: encryptedContent, visibility },
         create: {
           id,
           title,
-          content,
+          content: encryptedContent,
           visibility: visibility || 'SHARED',
           userId: authSession.user.id,
         },
@@ -70,7 +83,7 @@ export default async function VaultPage(props: {
       await prisma.note.create({
         data: {
           title,
-          content,
+          content: encryptedContent,
           visibility: visibility || 'SHARED',
           userId: authSession.user.id,
         },

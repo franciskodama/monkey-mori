@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
+import { decrypt } from '@/lib/encryption';
 import { auth } from '@/auth';
 
 import Link from 'next/link';
@@ -45,12 +46,22 @@ export default async function PartnerVaultPage(props: {
     // If partner's switch is triggered, show all notes. Otherwise, only show SHARED notes.
     const isTriggered = partner.switchStatus === 'TRIGGERED';
 
-    partnerNotes = await prisma.note.findMany({
+    const rawPartnerNotes = await prisma.note.findMany({
       where: {
         userId: partner.id,
         ...(isTriggered ? {} : { visibility: 'SHARED' }),
       },
       orderBy: { updatedAt: 'desc' },
+    });
+
+    // Decrypt partner notes for display
+    partnerNotes = rawPartnerNotes.map((note) => {
+      try {
+        return { ...note, content: decrypt(note.content) };
+      } catch (e) {
+        // Fallback for existing plain text notes or decryption errors
+        return note;
+      }
     });
   }
 
