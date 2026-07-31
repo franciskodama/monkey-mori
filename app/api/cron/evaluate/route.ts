@@ -77,9 +77,10 @@ export async function GET(request: Request) {
           }
         }
       } 
-      // WARNING 3: FINAL 48-HOUR URGENT WARNING (Day 42 - Day 43)
-      else if (deltaDays >= 42 && deltaDays < 43 && user.switchStatus === 'ACTIVE') {
-        if (user.email) {
+      // WARNING 3: FINAL 48-HOUR URGENT WARNING (Day 42+)
+      else if (deltaDays >= 42 && user.switchStatus !== 'TRIGGERED') {
+        // Only send if we haven't already sent REMINDER_2 or if status is still in an earlier reminder stage
+        if (user.email && user.switchStatus !== 'REMINDER_2') {
           const token = generateCheckInToken(user.id);
           const checkInUrl = `${baseUrl}/api/check-in?u=${user.id}&t=${token}`;
           await resend.emails.send({
@@ -88,12 +89,16 @@ export async function GET(request: Request) {
             subject: '🚨 URGENT: Monkey Mori trigger in 48 hours!',
             react: CheckInEmail({ userName: user.name?.split(' ')[0] || 'there', checkInUrl, baseUrl }),
           });
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { switchStatus: 'REMINDER_2' },
+          });
           remindedUsers.push(`URGENT_WARNING_3_${user.email}`);
         }
       }
-      // WARNING 2: SEVEN DAYS OVERDUE (Day 37 - Day 38)
-      else if (deltaDays >= 37 && deltaDays < 38 && user.switchStatus === 'ACTIVE') {
-        if (user.email) {
+      // WARNING 2: SEVEN DAYS OVERDUE (Day 37+)
+      else if (deltaDays >= 37 && user.switchStatus !== 'TRIGGERED') {
+        if (user.email && (user.switchStatus === 'ACTIVE' || user.switchStatus === 'REMINDER_1')) {
           const token = generateCheckInToken(user.id);
           const checkInUrl = `${baseUrl}/api/check-in?u=${user.id}&t=${token}`;
           await resend.emails.send({
@@ -102,11 +107,15 @@ export async function GET(request: Request) {
             subject: '⚠️ Monkey Mori: You missed your check-in!',
             react: CheckInEmail({ userName: user.name?.split(' ')[0] || 'there', checkInUrl, baseUrl }),
           });
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { switchStatus: 'REMINDER_2' },
+          });
           remindedUsers.push(`WARNING_2_${user.email}`);
         }
       }
-      // WARNING 1: STANDARD MONTHLY REMINDER (Day 30 - Day 31)
-      else if (deltaDays >= 30 && deltaDays < 31 && user.switchStatus === 'ACTIVE') {
+      // WARNING 1: STANDARD MONTHLY REMINDER (Day 30+)
+      else if (deltaDays >= 30 && user.switchStatus === 'ACTIVE') {
         if (user.email) {
           const token = generateCheckInToken(user.id);
           const checkInUrl = `${baseUrl}/api/check-in?u=${user.id}&t=${token}`;
@@ -115,6 +124,10 @@ export async function GET(request: Request) {
             to: [user.email],
             subject: 'Action Required: Your Monkey Mori Check-In',
             react: CheckInEmail({ userName: user.name?.split(' ')[0] || 'there', checkInUrl, baseUrl }),
+          });
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { switchStatus: 'REMINDER_1' },
           });
           remindedUsers.push(`REMINDER_1_${user.email}`);
         }
