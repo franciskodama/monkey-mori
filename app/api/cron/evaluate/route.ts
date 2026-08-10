@@ -55,7 +55,7 @@ export async function GET(request: Request) {
           });
 
           if (partner?.email) {
-            await resend.emails.send({
+            const { error: partnerEmailError } = await resend.emails.send({
               from: 'Monkey Mori <onboarding@resend.dev>',
               to: [partner.email],
               subject: `🚨 CRITICAL ALERT: ${user.name?.split(' ')[0] || 'Your partner'}'s Vault Unlocked`,
@@ -74,6 +74,9 @@ export async function GET(request: Request) {
                 </div>
               `
             });
+            if (partnerEmailError) {
+              console.error(`Failed to send partner vault alert email to ${partner.email}:`, partnerEmailError);
+            }
           }
         }
       } 
@@ -83,17 +86,21 @@ export async function GET(request: Request) {
         if (user.email && user.switchStatus !== 'REMINDER_2') {
           const token = generateCheckInToken(user.id);
           const checkInUrl = `${baseUrl}/api/check-in?u=${user.id}&t=${token}`;
-          await resend.emails.send({
+          const { error: sendError } = await resend.emails.send({
             from: 'Monkey Mori <onboarding@resend.dev>',
             to: [user.email],
             subject: '🚨 URGENT: Monkey Mori trigger in 48 hours!',
             react: CheckInEmail({ userName: user.name?.split(' ')[0] || 'there', checkInUrl, baseUrl }),
           });
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { switchStatus: 'REMINDER_2' },
-          });
-          remindedUsers.push(`URGENT_WARNING_3_${user.email}`);
+          if (sendError) {
+            console.error(`Resend error sending URGENT_WARNING_3 to ${user.email}:`, sendError);
+          } else {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { switchStatus: 'REMINDER_2' },
+            });
+            remindedUsers.push(`URGENT_WARNING_3_${user.email}`);
+          }
         }
       }
       // WARNING 2: SEVEN DAYS OVERDUE (Day 37+)
@@ -101,17 +108,21 @@ export async function GET(request: Request) {
         if (user.email && (user.switchStatus === 'ACTIVE' || user.switchStatus === 'REMINDER_1')) {
           const token = generateCheckInToken(user.id);
           const checkInUrl = `${baseUrl}/api/check-in?u=${user.id}&t=${token}`;
-          await resend.emails.send({
+          const { error: sendError } = await resend.emails.send({
             from: 'Monkey Mori <onboarding@resend.dev>',
             to: [user.email],
             subject: '⚠️ Monkey Mori: You missed your check-in!',
             react: CheckInEmail({ userName: user.name?.split(' ')[0] || 'there', checkInUrl, baseUrl }),
           });
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { switchStatus: 'REMINDER_2' },
-          });
-          remindedUsers.push(`WARNING_2_${user.email}`);
+          if (sendError) {
+            console.error(`Resend error sending WARNING_2 to ${user.email}:`, sendError);
+          } else {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { switchStatus: 'REMINDER_2' },
+            });
+            remindedUsers.push(`WARNING_2_${user.email}`);
+          }
         }
       }
       // WARNING 1: STANDARD MONTHLY REMINDER (Day 30+)
@@ -119,17 +130,21 @@ export async function GET(request: Request) {
         if (user.email) {
           const token = generateCheckInToken(user.id);
           const checkInUrl = `${baseUrl}/api/check-in?u=${user.id}&t=${token}`;
-          await resend.emails.send({
+          const { error: sendError } = await resend.emails.send({
             from: 'Monkey Mori <onboarding@resend.dev>',
             to: [user.email],
             subject: 'Action Required: Your Monkey Mori Check-In',
             react: CheckInEmail({ userName: user.name?.split(' ')[0] || 'there', checkInUrl, baseUrl }),
           });
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { switchStatus: 'REMINDER_1' },
-          });
-          remindedUsers.push(`REMINDER_1_${user.email}`);
+          if (sendError) {
+            console.error(`Resend error sending REMINDER_1 to ${user.email}:`, sendError);
+          } else {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { switchStatus: 'REMINDER_1' },
+            });
+            remindedUsers.push(`REMINDER_1_${user.email}`);
+          }
         }
       }
     }
