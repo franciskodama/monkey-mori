@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { resend } from '@/lib/email';
+import { resend, EMAIL_FROM, getBaseUrl } from '@/lib/email';
 import { generateCheckInToken } from '@/lib/token';
 import CheckInEmail from '@/components/emails/check-in';
 
@@ -23,9 +23,7 @@ export async function GET(request: Request) {
     const triggeredUsers: string[] = [];
     const remindedUsers: string[] = [];
 
-    const baseUrl = process.env.NODE_ENV === 'production'
-      ? 'https://monkeymori.vercel.app'
-      : 'http://localhost:3000';
+    const baseUrl = getBaseUrl();
 
     for (const user of users) {
       if (!user.lastCheckInAt) continue;
@@ -56,7 +54,7 @@ export async function GET(request: Request) {
 
           if (partner?.email) {
             const { error: partnerEmailError } = await resend.emails.send({
-              from: 'Monkey Mori <onboarding@resend.dev>',
+            from: EMAIL_FROM,
               to: [partner.email],
               subject: `🚨 CRITICAL ALERT: ${user.name?.split(' ')[0] || 'Your partner'}'s Vault Unlocked`,
               html: `
@@ -87,7 +85,7 @@ export async function GET(request: Request) {
           const token = generateCheckInToken(user.id);
           const checkInUrl = `${baseUrl}/api/check-in?u=${user.id}&t=${token}`;
           const { error: sendError } = await resend.emails.send({
-            from: 'Monkey Mori <onboarding@resend.dev>',
+            from: EMAIL_FROM,
             to: [user.email],
             subject: '🚨 URGENT: Monkey Mori trigger in 48 hours!',
             react: CheckInEmail({ userName: user.name?.split(' ')[0] || 'there', checkInUrl, baseUrl }),
@@ -109,7 +107,7 @@ export async function GET(request: Request) {
           const token = generateCheckInToken(user.id);
           const checkInUrl = `${baseUrl}/api/check-in?u=${user.id}&t=${token}`;
           const { error: sendError } = await resend.emails.send({
-            from: 'Monkey Mori <onboarding@resend.dev>',
+            from: EMAIL_FROM,
             to: [user.email],
             subject: '⚠️ Monkey Mori: You missed your check-in!',
             react: CheckInEmail({ userName: user.name?.split(' ')[0] || 'there', checkInUrl, baseUrl }),
@@ -131,7 +129,7 @@ export async function GET(request: Request) {
           const token = generateCheckInToken(user.id);
           const checkInUrl = `${baseUrl}/api/check-in?u=${user.id}&t=${token}`;
           const { error: sendError } = await resend.emails.send({
-            from: 'Monkey Mori <onboarding@resend.dev>',
+            from: EMAIL_FROM,
             to: [user.email],
             subject: 'Action Required: Your Monkey Mori Check-In',
             react: CheckInEmail({ userName: user.name?.split(' ')[0] || 'there', checkInUrl, baseUrl }),

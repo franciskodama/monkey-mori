@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { resend } from '@/lib/email';
+import { resend, EMAIL_FROM, getBaseUrl } from '@/lib/email';
 import { prisma } from '@/lib/db';
 import { generateCheckInToken } from '@/lib/token';
 import CheckInEmail from '@/components/emails/check-in';
@@ -29,18 +29,12 @@ export async function GET(request: NextRequest) {
   }
 
   const token = generateCheckInToken(user.id);
-
-  // Since you test locally, we default to localhost. In Vercel, it uses the host environment.
-  const baseUrl =
-    process.env.NODE_ENV === 'production'
-      ? 'https://monkeymori.vercel.app'
-      : 'http://localhost:3000';
-
+  const baseUrl = getBaseUrl();
   const checkInUrl = `${baseUrl}/api/check-in?u=${user.id}&t=${token}`;
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Monkey Mori <onboarding@resend.dev>', // You MUST use onboarding@resend.dev if you haven't bought/verified a Custom Domain in Resend yet!
+      from: EMAIL_FROM,
       to: [userEmail],
       subject: 'Action Required: Monkey Mori Monthly Check-In',
       react: CheckInEmail({
