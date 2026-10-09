@@ -33,14 +33,14 @@ export async function GET(request: NextRequest) {
   // Since you test locally, we default to localhost. In Vercel, it uses the host environment.
   const baseUrl =
     process.env.NODE_ENV === 'production'
-      ? 'https://monkeymori.vercel.app'
+      ? (process.env.NEXTAUTH_URL || 'https://www.franciskodama.com.br')
       : 'http://localhost:3000';
 
   const checkInUrl = `${baseUrl}/api/check-in?u=${user.id}&t=${token}`;
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Monkey Mori <onboarding@resend.dev>', // You MUST use onboarding@resend.dev if you haven't bought/verified a Custom Domain in Resend yet!
+      from: 'Monkey Mori <noreply@franciskodama.com.br>',
       to: [userEmail],
       subject: 'Action Required: Monkey Mori Monthly Check-In',
       react: CheckInEmail({
